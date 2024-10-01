@@ -1,0 +1,11 @@
+pandas
+datetime
+pytz
+yfinance
+openai
+mysql-connector-python
+pydantic
+langchain
+pymysql
+scikit-learn
+statsmodels
