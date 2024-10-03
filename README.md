@@ -8,6 +8,10 @@ This Python project analyzes stock news articles to provide sentiment scores and
 - **Database Storage**: Stores the sentiment analysis results in a MySQL database.
 - **Price Analysis**: Correlates stock price movements with sentiment scores using regression models.
 
+## Documentation
+
+For detailed documentation, visit the [Stock News Sentiment Analyzer Wiki](https://github.com/margaret-oberc/StockNewsSentimentAnalyzer/wiki/Stock-News-Sentiment-Analyzer).
+
 ## Prerequisites
 - Python 3.8+
 - MySQL database
@@ -64,5 +68,3 @@ CREATE TABLE IF NOT EXISTS stock_price(
     volume BIGINT,
     PRIMARY KEY (symbol, close_dt)
 );
-
-Documentaion: [Stock-News-Sentiment-Analyzer Wiki](https://github.com/margaret-oberc/StockNewsSentimentAnalyzer/wiki/Stock-News-Sentiment-Analyzer)
