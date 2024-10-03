@@ -65,3 +65,4 @@ CREATE TABLE IF NOT EXISTS stock_price(
     PRIMARY KEY (symbol, close_dt)
 );
 
+Documentaion: https://github.com/margaret-oberc/StockNewsSentimentAnalyzer/wiki/Stock-News-Sentiment-Analyzer
