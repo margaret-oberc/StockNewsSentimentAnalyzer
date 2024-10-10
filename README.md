@@ -3,7 +3,7 @@
 This Python project analyzes stock news articles to provide sentiment scores and categorize financial reports. It automates fetching news for a list of stock tickers, running sentiment analysis using a fine-tuned OpenAI model, and storing the results in a MySQL database.
 
 ## Features
-- **Stock News Fetching**: Fetches stock news articles for a set of stock tickers.
+- **Stock News Fetching**: Fetches stock news articles for a set of stock tickers using RSS feed.
 - **Sentiment Analysis**: Uses a fine-tuned OpenAI model for sentiment analysis.
 - **Database Storage**: Stores the sentiment analysis results in a MySQL database.
 - **Price Analysis**: Correlates stock price movements with sentiment scores using regression models.
@@ -50,12 +50,12 @@ CREATE TABLE IF NOT EXISTS ynews(
     trading_dt DATE,
     title VARCHAR(1024),
     link VARCHAR(1024),
-    publisher VARCHAR(256),
+    description TEXT,
     news_type VARCHAR(16),
     sentiment_score int,
     comment varchar(1024)
 );
-CREATE INDEX ynews_idx on ynews (symbol, news_dt);
+CREATE INDEX ynews_idx on ynews (symbol, trading_dt);
 
 CREATE TABLE IF NOT EXISTS stock_price(
     symbol VARCHAR(10) NOT NULL,

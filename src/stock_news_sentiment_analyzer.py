@@ -2,19 +2,17 @@ import pandas as pd
 import datetime
 import os
 import pytz
-import yfinance as yf
+import feedparser
 import openai
 import mysql.connector
 import utils.trading_date_lookup as td
 from utils.holiday_manager import load_holiday_dates_from_csv
 from pydantic import BaseModel, Field
 from typing import Iterable, Optional
-from langchain_community.document_loaders.web_base import WebBaseLoader
-from langchain_core.documents import Document
 from pathlib import Path
 
 # List of stock tickers to analyze
-tickers = [ 'AQN', 'BCE', 'PAAS', 'ENB', 'CM', 'BMO', 'TD', 'RY', 'BNS']
+tickers = ['AQN', 'BCE', 'PAAS', 'ENB', 'CM', 'BMO', 'TD', 'RY', 'MFC', 'BNS', 'CP', 'TRI', 'SU', 'AEM', 'L']
 
 # Pydantic model to structure sentiment response
 class SentimentAnswer(BaseModel):
@@ -29,24 +27,57 @@ client = openai.OpenAI()
 
 # Template to request sentiment analysis from the OpenAI model
 sentiment_template = """
-Estimate sentiment score for {stock} stock from the news article: negative=-1, neutral=0, positive=1.
+Estimate sentiment score for {symbol} stock from the news article: negative=-1, neutral=0, positive=1.
 Provide answer as an integer number and a short comment indicating the reason.
 If article does not contain mention of the specific stock, please rate neutral.
+Title: {title}
 Article: {article}
 Detect if the article is a financial statement - provide answer as type 'story' or 'fs' for financial statement.
-A financial statement is a report issued by a company summarizing financial performance for the last quarter or year.
+A financial statement is a report issued by that company summarizing financial performance for the last quarter or year.
 """
-
 # Ensure holidays are loaded at initialization
 root_dir = Path(__file__).parent.parent
 file_path = root_dir / 'data' / 'tsx_holidays.csv'
 load_holiday_dates_from_csv(file_path)
 
+# Function to get news for the given symbol
+def get_news(symbol: str):
+
+    # URL of the RSS feed
+    rss_url = f"https://feeds.finance.yahoo.com/rss/2.0/headline?s={symbol}&region=US&lang=en-US&count=500"
+
+    # Parse the RSS feed
+    feed = feedparser.parse(rss_url)
+
+    # Check if the feed was successfully parsed
+    if feed.bozo:
+        print("Failed to parse the RSS feed.")
+        return None
+
+    news_items = []
+    # Loop through each news item and collect details
+    for entry in feed.entries:
+        news_items.append({
+            'uuid': entry.id,
+            'title': entry.title,
+            'link': entry.link,
+            'publication date': entry.published,
+            'description': entry.description
+        })
+
+    # Convert the list of news items into a DataFrame
+    news_df = pd.DataFrame(news_items)
+
+    # Convert the 'Publication Date' to datetime
+    news_df['publication date'] = pd.to_datetime(news_df['publication date'])
+
+    return news_df
+
 # Function to send a sentiment analysis request to OpenAI
-def get_sentiment_analysis(stock: str, article: str) -> Optional[SentimentAnswer]:
+def get_sentiment_analysis(symbol: str, title: str, article: str) -> Optional[SentimentAnswer]:
     try:
         # Create the user message based on the template
-        user_message = sentiment_template.format(stock=stock, article=article)
+        user_message = sentiment_template.format(symbol=symbol, title=title, article=article)
         messages = [
             {"role": "system", "content": "You are a financial news sentiment analysis assistant."},
             {"role": "user", "content": user_message}
@@ -67,7 +98,7 @@ def get_sentiment_analysis(stock: str, article: str) -> Optional[SentimentAnswer
 def article_exists(connection, uuid: str) -> bool:
     try:
         with connection.cursor() as cursor:
-            sql = "SELECT 1 FROM ynews WHERE uuid = %s LIMIT 1;"
+            sql = "SELECT 1 FROM ynews_new WHERE uuid = %s LIMIT 1;"
             cursor.execute(sql, (uuid,))
             result = cursor.fetchone()
             return result is not None
@@ -79,7 +110,7 @@ def article_exists(connection, uuid: str) -> bool:
 def insert_ynews(row: pd.Series, connection, symbol: str):
     uuid = row['uuid']
     title = row['title']
-    publisher = row['publisher']
+    description = row['description']
     link = row['link']
     news_ts = pd.to_datetime(row['est_time'])
     trading_dt = td.get_trading_date(news_ts) #convert to correct trading date
@@ -88,10 +119,10 @@ def insert_ynews(row: pd.Series, connection, symbol: str):
     comment = row['comment']
 
     query = """
-    INSERT INTO ynews (uuid, symbol, news_ts, trading_dt, title, link, publisher, news_type, sentiment_score, comment)
+    INSERT INTO ynews_new (uuid, symbol, news_ts, trading_dt, title, link, description, news_type, sentiment_score, comment)
     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
     """
-    data = (uuid, symbol, news_ts, trading_dt, title, link, publisher, news_type, sentiment_score, comment)
+    data = (uuid, symbol, news_ts, trading_dt, title, link, description, news_type, sentiment_score, comment)
     
     cursor = connection.cursor()
     try:
@@ -104,25 +135,14 @@ def insert_ynews(row: pd.Series, connection, symbol: str):
         cursor.close()
 
 # Helper function to convert Unix timestamp to EST
-def unix_to_est(unix_time: int) -> str:
+def utc_to_est(utc_time: datetime) -> str:
     try:
-        # Convert Unix time to UTC datetime
-        utc_time = datetime.datetime.fromtimestamp(unix_time, datetime.timezone.utc)
         est = pytz.timezone('America/New_York')
         est_time = utc_time.astimezone(est)
         return est_time.strftime('%Y-%m-%d %H:%M:%S')
     except Exception as e:
         print(f"Error converting Unix time: {e}")
         return None
-
-# Helper function to format a list of Document objects into a string
-def format_results(docs: Iterable[Document]) -> str:
-    doc_strings = []
-    for doc in docs:
-        title = doc.metadata.get("title", "No Title Available")
-        description = doc.metadata.get("description", "No Description Available")
-        doc_strings.append(f"{title}\n{description}")
-    return "\n\n".join(doc_strings)
 
 # Main: Establish connection to MySQL database
 def main():
@@ -140,19 +160,15 @@ def main():
 
     # Process news for each stock symbol
     for symbol in tickers:
-        stock = yf.Ticker(symbol)
-        print(f"\nProcessing {stock.ticker}")
+        print(f"\nProcessing {symbol}")
 
         try:
-            stock_info = stock.info
-            stock_long_name = stock_info.get('longName')
-            resp = stock.news
-            if not resp:
+            data = get_news(symbol)
+            if data is None:
                 print(f"No news available for {symbol}.")
                 continue
-            data = pd.DataFrame(resp)
-            data['est_time'] = data['providerPublishTime'].apply(unix_to_est)
-            print(data[['title', 'publisher', 'est_time']])
+            data['est_time'] = data['publication date'].apply(utc_to_est)
+            print(data[['title', 'est_time']])
         except Exception as e:
             print(f"Error fetching news for {symbol}: {e}")
             continue
@@ -163,28 +179,18 @@ def main():
 
         for index, row in data.iterrows():
             uuid = row['uuid']
+            title = row['title']
+            article = row['description']
+
+            # skip if already processed
             if article_exists(connection, uuid):
                 continue
 
-            link = row['link']
-            try:
-                loader = WebBaseLoader(web_paths=[link])
-                docs = loader.load()
-                article = format_results(docs)
-            except Exception as e:
-                print(f"Error loading article from {link}: {e}")
-                continue
-
-            if not article:
-                print(f"No article content found for {link}.")
-                continue
-
-            sentiment = get_sentiment_analysis(symbol, article)
+            sentiment = get_sentiment_analysis(symbol, title, article)
             if sentiment:
                 row['score'] = sentiment.score
                 row['type'] = sentiment.type
                 row['comment'] = sentiment.comment
-
 
                 insert_ynews(row, connection, symbol)
 

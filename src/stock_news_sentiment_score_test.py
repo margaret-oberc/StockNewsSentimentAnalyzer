@@ -68,7 +68,7 @@ def process_ticker(symbol, connection, tsx_symbol):
         SELECT symbol, trading_dt, 
         COALESCE(MIN(CASE WHEN sentiment_score < 0 THEN sentiment_score END), 0) AS min_score,
         COALESCE(MAX(CASE WHEN sentiment_score > 0 THEN sentiment_score END), 0) AS max_score 
-        FROM ynews
+        FROM ynews_new
         WHERE symbol = %s AND news_type <> 'fs'
         GROUP BY symbol, trading_dt
         ORDER BY symbol, trading_dt
@@ -101,7 +101,6 @@ def process_ticker(symbol, connection, tsx_symbol):
             ])
 
     return data
-
 
 def fit_OLS(data):
     """
@@ -152,7 +151,7 @@ def main():
     }
 
     # List of stock tickers to analyze
-    tickers = [ 'AQN', 'BCE', 'PAAS', 'ENB', 'CM', 'BMO', 'TD', 'RY', 'BNS']
+    tickers = ['AQN', 'BCE', 'PAAS', 'ENB', 'CM', 'BMO', 'TD', 'RY', 'MFC', 'BNS', 'CP', 'TRI', 'SU', 'AEM', 'L']
     TSX = '^GSPTSE'
 
     with pymysql.connect(**db_config) as connection:
@@ -164,6 +163,7 @@ def main():
             if data:
                 fit_OLS(data)
 
+            print()
 
 if __name__ == "__main__":
     main()

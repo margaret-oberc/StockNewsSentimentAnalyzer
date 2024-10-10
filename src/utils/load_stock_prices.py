@@ -63,15 +63,16 @@ def main():
     }
 
     # List of stock tickers to analyze
-    tickers = [ '^GSPTSE', 'AQN', 'BCE', 'PAAS', 'ENB', 'CM', 'BMO', 'TD', 'RY', 'BNS']
+    tickers = [ '^GSPTSE', 'AQN', 'BCE', 'PAAS', 'ENB', 'CM', 'BMO', 'TD', 'RY', 'MFC', 'BNS', 'CP', 'TRI', 'SU', 'AEM', 'L']
     start_date = '2023-09-01'
 
     with pymysql.connect(**db_config) as connection:
         for symbol in tickers:
             print(f"Processing {symbol}")
 
-            upload_stock_data_to_db(connection, symbol, start_date)
+            to_symbol = f"{symbol}.TO" if not (symbol.endswith('.TO') or symbol.startswith('^')) else symbol
 
+            upload_stock_data_to_db(connection, to_symbol, start_date)
 
 if __name__ == "__main__":
     main()

@@ -1,11 +1,9 @@
 pandas
 datetime
 pytz
-yfinance
+feedparser
 openai
 mysql-connector-python
 pydantic
-langchain
-pymysql
 scikit-learn
 statsmodels
