@@ -68,7 +68,7 @@ def process_ticker(symbol, connection, tsx_symbol):
         SELECT symbol, trading_dt, 
         COALESCE(MIN(CASE WHEN sentiment_score < 0 THEN sentiment_score END), 0) AS min_score,
         COALESCE(MAX(CASE WHEN sentiment_score > 0 THEN sentiment_score END), 0) AS max_score 
-        FROM ynews_new
+        FROM ynews
         WHERE symbol = %s AND news_type <> 'fs'
         GROUP BY symbol, trading_dt
         ORDER BY symbol, trading_dt

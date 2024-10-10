@@ -98,7 +98,7 @@ def get_sentiment_analysis(symbol: str, title: str, article: str) -> Optional[Se
 def article_exists(connection, uuid: str) -> bool:
     try:
         with connection.cursor() as cursor:
-            sql = "SELECT 1 FROM ynews_new WHERE uuid = %s LIMIT 1;"
+            sql = "SELECT 1 FROM ynews WHERE uuid = %s LIMIT 1;"
             cursor.execute(sql, (uuid,))
             result = cursor.fetchone()
             return result is not None
@@ -119,7 +119,7 @@ def insert_ynews(row: pd.Series, connection, symbol: str):
     comment = row['comment']
 
     query = """
-    INSERT INTO ynews_new (uuid, symbol, news_ts, trading_dt, title, link, description, news_type, sentiment_score, comment)
+    INSERT INTO ynews(uuid, symbol, news_ts, trading_dt, title, link, description, news_type, sentiment_score, comment)
     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
     """
     data = (uuid, symbol, news_ts, trading_dt, title, link, description, news_type, sentiment_score, comment)
