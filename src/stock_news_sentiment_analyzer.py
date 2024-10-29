@@ -12,7 +12,7 @@ from typing import Iterable, Optional
 from pathlib import Path
 
 # List of stock tickers to analyze
-tickers = ['AQN', 'BCE', 'PAAS', 'ENB', 'CM', 'BMO', 'TD', 'RY', 'MFC', 'BNS', 'CP', 'TRI', 'SU', 'AEM', 'L']
+tickers = ['AQN', 'BCE', 'PAAS', 'ENB', 'CM', 'BMO', 'TD', 'RY', 'MFC', 'BNS', 'CP', 'TRI', 'SU', 'AEM', 'L.TO']
 
 # Pydantic model to structure sentiment response
 class SentimentAnswer(BaseModel):
@@ -44,6 +44,34 @@ load_holiday_dates_from_csv(file_path)
 def get_news(symbol: str):
 
     # URL of the RSS feed
+    rss_url = f"https://feeds.finance.yahoo.com/rss/2.0/headline?s={symbol}&region=USA&lang=en-US&count=500"
+
+    # Parse the RSS feed
+    feed = feedparser.parse(rss_url)
+
+    # Check if the feed was successfully parsed
+    if feed.bozo:
+        print("Failed to parse the RSS feed.")
+        return None
+
+    news_items = []
+    # Loop through each news item and collect details
+    for entry in feed.entries:
+        news_items.append({
+            'uuid': entry.id,
+            'title': entry.title,
+            'link': entry.link,
+            'publication date': entry.published,
+            'description': entry.description
+        })
+
+    # Convert the list of news items into a DataFrame
+    news_df = pd.DataFrame(news_items)
+
+    # Convert the 'Publication Date' to datetime
+    news_df['publication date'] = pd.to_datetime(news_df['publication date'])
+
+    return news_df
     rss_url = f"https://feeds.finance.yahoo.com/rss/2.0/headline?s={symbol}&region=US&lang=en-US&count=500"
 
     # Parse the RSS feed

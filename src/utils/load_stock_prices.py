@@ -63,8 +63,8 @@ def main():
     }
 
     # List of stock tickers to analyze
-    tickers = [ '^GSPTSE', 'AQN', 'BCE', 'PAAS', 'ENB', 'CM', 'BMO', 'TD', 'RY', 'MFC', 'BNS', 'CP', 'TRI', 'SU', 'AEM', 'L']
-    start_date = '2023-09-01'
+    tickers = [ '^GSPTSE', 'AQN', 'BCE', 'PAAS', 'ENB', 'CM', 'BMO', 'TD', 'RY', 'MFC', 'BNS', 'CP', 'TRI', 'SU', 'AEM', 'L.TO']
+    start_date = '2020-01-01'
 
     with pymysql.connect(**db_config) as connection:
         for symbol in tickers:
