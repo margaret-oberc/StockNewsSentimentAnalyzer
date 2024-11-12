@@ -1,12 +1,14 @@
 import yfinance as yf
 import pandas as pd
 import pymysql
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
 
-def upload_stock_data_to_db(connection, symbol, start_date):
+def upload_stock_data_to_db(connection, symbol, start_date, end_date=None):
     cursor = connection.cursor()
 
     # Download stock data from yfinance
-    stock_data = yf.download(symbol, start=start_date, end=None)
+    stock_data = yf.download(symbol, start=start_date, end=end_date)
         
     # Prepare the data for insertion
     stock_data.reset_index(inplace=True)
@@ -64,15 +66,17 @@ def main():
 
     # List of stock tickers to analyze
     tickers = [ '^GSPTSE', 'AQN', 'BCE', 'PAAS', 'ENB', 'CM', 'BMO', 'TD', 'RY', 'MFC', 'BNS', 'CP', 'TRI', 'SU', 'AEM', 'L.TO']
-    start_date = '2020-01-01'
-
+    start_dates = ['2017-01-01', '2018-01-01', '2019-01-01', '2020-01-01', '2021-01-01', '2022-01-01', '2023-01-01', '2024-01-01']
+    
     with pymysql.connect(**db_config) as connection:
         for symbol in tickers:
             print(f"Processing {symbol}")
 
             to_symbol = f"{symbol}.TO" if not (symbol.endswith('.TO') or symbol.startswith('^')) else symbol
 
-            upload_stock_data_to_db(connection, to_symbol, start_date)
+            for start_date in start_dates:
+                end_date = datetime.strptime(start_date, "%Y-%m-%d") + relativedelta(years=1)
+                upload_stock_data_to_db(connection, to_symbol, start_date, end_date)
 
 if __name__ == "__main__":
     main()
