@@ -1,7 +1,8 @@
 import yfinance as yf
 import pandas as pd
-import pymysql
-from datetime import datetime
+import mysql.connector
+from datetime import datetime, timedelta
+from decimal import Decimal
 from dateutil.relativedelta import relativedelta
 
 def upload_stock_data_to_db(connection, symbol, start_date, end_date=None):
@@ -22,6 +23,10 @@ def upload_stock_data_to_db(connection, symbol, start_date, end_date=None):
         'Adj Close': 'adj_close_price',
         'Volume': 'volume'
     }, inplace=True)
+
+    # Convert price-related columns to Decimal and round to 2 decimal places
+    for col in ['open_price', 'high', 'low', 'close_price', 'adj_close_price']:
+        stock_data[col] = stock_data[col].apply(lambda x: round(Decimal(str(x)), 2))
 
     # Insert each row into the database
     for index, row in stock_data.iterrows():
@@ -47,36 +52,39 @@ def upload_stock_data_to_db(connection, symbol, start_date, end_date=None):
                     row['volume']
                 ))
         except Exception as e:
-            print(f"Error inserting data for {symbol} on {row['close_date']}: {e}")
+            print(f"Error inserting data for {symbol} on {row['close_dt']}: {e}")
 
     # Commit the transaction and close the cursor
     connection.commit()
     cursor.close()
 
-
 def main():
-    # Database connection details
-    db_config = {
-        'database': 'investments',
-        'user': 'moberc',
-        'password': 'moberc',
-        'host': 'localhost',
-        'port': 3306
-    }
-
     # List of stock tickers to analyze
-    tickers = [ '^GSPTSE', 'AQN', 'BCE', 'PAAS', 'ENB', 'CM', 'BMO', 'TD', 'RY', 'MFC', 'BNS', 'CP', 'TRI', 'SU', 'AEM', 'L.TO']
+    tickers = ['^GSPTSE', 'AQN', 'BCE', 'PAAS', 'ENB', 'CM', 'BMO', 'TD', 'RY', 'MFC', 'BNS', 'CP', 'TRI', 'SU', 'AEM', 'L.TO']
     start_dates = ['2017-01-01', '2018-01-01', '2019-01-01', '2020-01-01', '2021-01-01', '2022-01-01', '2023-01-01', '2024-01-01']
     
-    with pymysql.connect(**db_config) as connection:
-        for symbol in tickers:
-            print(f"Processing {symbol}")
+    try:
+        connection = mysql.connector.connect(
+            host="127.0.0.1",
+            user="moberc",
+            password="moberc",
+            database="investments"
+        )
+    except Exception as e:
+        print("Error connecting to database:", e)
+        return
 
-            to_symbol = f"{symbol}.TO" if not (symbol.endswith('.TO') or symbol.startswith('^')) else symbol
+    for symbol in tickers:
+        print(f"Processing {symbol}")
 
-            for start_date in start_dates:
-                end_date = datetime.strptime(start_date, "%Y-%m-%d") + relativedelta(years=1)
-                upload_stock_data_to_db(connection, to_symbol, start_date, end_date)
+        to_symbol = f"{symbol}.TO" if not (symbol.endswith('.TO') or symbol.startswith('^')) else symbol
+
+        for start_date in start_dates:
+            # Adjust end_date to be inclusive
+            end_date = (datetime.strptime(start_date, "%Y-%m-%d") + relativedelta(years=1) - timedelta(days=1)).strftime("%Y-%m-%d")
+            upload_stock_data_to_db(connection, to_symbol, start_date, end_date)
+    
+    connection.close()
 
 if __name__ == "__main__":
     main()
