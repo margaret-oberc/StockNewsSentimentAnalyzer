@@ -1,6 +1,8 @@
 import pymysql
 import math
 from datetime import datetime
+import numpy as np
+from decimal import Decimal
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import r2_score
@@ -54,9 +56,15 @@ def get_stock_price_change(symbol, trading_dt, db_connection):
         previous_price = adj_close_prices[0]
 
         price_changes = [
-            round(100 * (adj_close_prices[i] - previous_price) / previous_price, 4)
+            np.log(float(adj_close_prices[i] / previous_price))
             for i in range(1, len(adj_close_prices))
         ]
+
+        """ price_changes = [
+            round(100 * (adj_close_prices[i] - previous_price) / previous_price, 4)
+            for i in range(1, len(adj_close_prices))
+        ] """
+
     return adj_close_prices, price_changes
 
 def process_ticker(symbol, connection, tsx_symbol):
@@ -139,6 +147,73 @@ def fit_OLS(data):
     # Print the full statistical summary of the model
     print(model.summary())
 
+def F_test(data):
+    """
+    Fit an OLS model to the data and determine score impact.
+    """
+    # Convert data to DataFrame
+    df = pd.DataFrame(data, columns=['symbol', 'trading_dt', 'min_score', 'max_score',
+    'price', 'price_change', 't1_price_change', 't2_price_change', 't3_price_change', 't4_price_change',
+    'tsx_price_change', 'tsx_t1_price_change', 'tsx_t2_price_change', 'tsx_t3_price_change', 'tsx_t4_price_change'
+    ])
+
+    # Ensure that numeric columns are in the correct format
+    df['price_change'] = pd.to_numeric(df['price_change'], errors='coerce')
+    df['tsx_price_change'] = pd.to_numeric(df['tsx_price_change'], errors='coerce')
+
+    # Drop any rows with missing values (optional, if applicable)
+    df = df.dropna()
+
+    # Define independent variables  
+    X = df[['min_score', 'max_score', 'tsx_price_change']]
+    y = df['price_change']
+
+    # Fit a reduced model (without `min_score` and `max_score`)
+    reduced_model = sm.OLS(y, df['tsx_price_change']).fit()
+
+    # Fit a full model (with `min_score` and `max_score`)
+    full_model = sm.OLS(y, X).fit()
+
+    # Perform an F-test
+    f_test_result = full_model.compare_f_test(reduced_model)
+    print("F-Test result for min and max scores:", f_test_result)
+
+def fit_OLS(data):
+    """
+    Fit an OLS model to the data and print a summary of the results.
+    """
+    # Convert data to DataFrame
+    df = pd.DataFrame(data, columns=['symbol', 'trading_dt', 'min_score', 'max_score',
+    'price', 'price_change', 't1_price_change', 't2_price_change', 't3_price_change', 't4_price_change',
+    'tsx_price_change', 'tsx_t1_price_change', 'tsx_t2_price_change', 'tsx_t3_price_change', 'tsx_t4_price_change'
+    ])
+
+    # Ensure that numeric columns are in the correct format
+    df['price_change'] = pd.to_numeric(df['price_change'], errors='coerce')
+    df['tsx_price_change'] = pd.to_numeric(df['tsx_price_change'], errors='coerce')
+
+    # Drop any rows with missing values (optional, if applicable)
+    df = df.dropna()
+
+    # Define independent variables  
+    X = df[['min_score', 'max_score', 'tsx_price_change']]
+    y = df['price_change']
+
+    # Split the data into training and testing sets (80% train, 20% test)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+    # Fit the linear regression model using statsmodels to get coefficient significance
+    model = sm.OLS(y_train, X_train).fit()
+
+    # Get the predictions
+    y_pred = model.predict(X_test)
+
+    # Evaluate the model performance using r-squared
+    r2 = r2_score(y_test, y_pred)
+    print(f"R-squared on test data: {r2}")
+
+    # Print the full statistical summary of the model
+    print(model.summary())
 
 def main():
     # Database connection details
@@ -151,7 +226,7 @@ def main():
     }
 
     # List of stock tickers to analyze
-    tickers = ['AQN', 'BCE', 'PAAS', 'ENB', 'CM', 'BMO', 'TD', 'RY', 'MFC', 'BNS', 'CP', 'TRI', 'SU', 'AEM', 'L']
+    tickers = ['AQN', 'FC.TO', 'BCE', 'PAAS', 'ENB', 'CM', 'BMO', 'TD', 'RY', 'MFC', 'BNS', 'CP', 'TRI', 'SU', 'AEM', 'L.TO']
     TSX = '^GSPTSE'
 
     with pymysql.connect(**db_config) as connection:
@@ -161,6 +236,7 @@ def main():
             data = process_ticker(symbol, connection, TSX)
 
             if data:
+                F_test(data)
                 fit_OLS(data)
 
             print()
