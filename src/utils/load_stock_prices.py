@@ -60,7 +60,9 @@ def upload_stock_data_to_db(connection, symbol, start_date, end_date=None):
 
 def main():
     # List of stock tickers to analyze
-    tickers = ['^GSPTSE', 'AQN', 'FC.TO', 'BCE', 'PAAS', 'ENB', 'CM', 'BMO', 'TD', 'RY', 'MFC', 'BNS', 'CP', 'TRI', 'SU', 'AEM', 'L.TO']
+    tickers = ['ALC.TO', 'ALA.TO', 'ACO-X.TO', 'CU.TO', 'FTS', 'WN.TO', 'GWO.TO', 'H.TO', 'KEY.TO', 'MRU.TO', 'NA.TO',
+    'PPL.TO', 'RCI-B.TO', 'T.TO', 'X.TO', 'WCN.TO',
+    'AQN', 'FC.TO', 'BCE', 'PAAS', 'ENB', 'CM', 'BMO', 'TD', 'RY', 'MFC', 'BNS', 'CP', 'TRI', 'SU', 'AEM', 'L.TO']
     start_dates = ['2017-01-01', '2018-01-01', '2019-01-01', '2020-01-01', '2021-01-01', '2022-01-01', '2023-01-01', '2024-01-01', '2025-01-01']
     
     try:

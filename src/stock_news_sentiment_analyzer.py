@@ -12,7 +12,9 @@ from typing import Iterable, Optional
 from pathlib import Path
 
 # List of stock tickers to analyze
-tickers = ['AQN', 'FC.TO', 'BCE', 'PAAS', 'ENB', 'CM', 'BMO', 'TD', 'RY', 'MFC', 'BNS', 'CP', 'TRI', 'SU', 'AEM', 'L.TO']
+tickers = ['^GSPTSE', 'ALC.TO', 'ALA.TO', 'ACO-X.TO', 'CU.TO', 'FTS', 'WN.TO', 'GWO.TO', 'H.TO', 'KEY.TO', 'MRU.TO', 'NA.TO',
+    'PPL.TO', 'RCI-B.TO', 'T.TO', 'X.TO', 'WCN.TO',
+    'AQN', 'FC.TO', 'BCE', 'PAAS', 'ENB', 'CM', 'BMO', 'TD', 'RY', 'MFC', 'BNS', 'CP', 'TRI', 'SU', 'AEM', 'L.TO']
 
 # Pydantic model to structure sentiment response
 class SentimentAnswer(BaseModel):
