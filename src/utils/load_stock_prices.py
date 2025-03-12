@@ -9,7 +9,8 @@ def upload_stock_data_to_db(connection, symbol, start_date, end_date=None):
     cursor = connection.cursor()
 
     # Download stock data from yfinance
-    stock_data = yf.download(symbol, start=start_date, end=end_date)
+    stock_data = yf.download(symbol, start=start_date, end=end_date, auto_adjust=False)
+    stock_data = stock_data.droplevel(level=1, axis=1)
         
     # Prepare the data for insertion
     stock_data.reset_index(inplace=True)
