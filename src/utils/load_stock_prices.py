@@ -61,7 +61,7 @@ def upload_stock_data_to_db(connection, symbol, start_date, end_date=None):
 
 def main():
     # List of stock tickers to analyze
-    tickers = ['ALC.TO', 'ALA.TO', 'ACO-X.TO', 'CU.TO', 'FTS', 'WN.TO', 'GWO.TO', 'H.TO', 'KEY.TO', 'MRU.TO', 'NA.TO',
+    tickers = ['^GSPTSE', 'ALC.TO', 'ALA.TO', 'ACO-X.TO', 'CU.TO', 'FTS', 'WN.TO', 'GWO.TO', 'H.TO', 'KEY.TO', 'MRU.TO', 'NA.TO',
         'PPL.TO', 'RCI-B.TO', 'T.TO', 'X.TO', 'WCN.TO',
         'AQN', 'FC.TO', 'BCE', 'PAAS', 'ENB', 'CM', 'BMO', 'TD', 'RY', 'MFC', 'BNS', 'CP', 'TRI', 'SU', 'AEM', 'L.TO',
         'EMA.TO', 'IFC.TO', 'MKP.TO', 'POW.TO', 'QBR-B.TO'] 
