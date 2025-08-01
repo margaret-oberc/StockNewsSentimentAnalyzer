@@ -33,3 +33,12 @@ def get_trading_date(timestamp_est):
         return get_next_trading_day(trading_date)
     
     return trading_date
+
+def get_last_trading_date(timestamp_est):
+    """
+    Get the last trading day excluding weekends and holidays.
+    """
+    trading_date = timestamp_est.date() 
+    while trading_date.weekday() >= 5 or is_holiday(trading_date):  # Skip weekends and holidays
+        trading_date -= timedelta(days=1)
+    return trading_date

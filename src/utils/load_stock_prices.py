@@ -4,6 +4,7 @@ import mysql.connector
 from datetime import datetime, timedelta
 from decimal import Decimal
 from dateutil.relativedelta import relativedelta
+import trading_date_lookup as td
 
 def upload_stock_data_to_db(connection, symbol, start_date, end_date=None):
     cursor = connection.cursor()
@@ -59,6 +60,46 @@ def upload_stock_data_to_db(connection, symbol, start_date, end_date=None):
     connection.commit()
     cursor.close()
 
+def store_fundamentals_to_db(connection, symbol, trading_date):
+    cursor = connection.cursor()
+    try:
+        info = yf.Ticker(symbol).info
+        cursor.execute("""
+            INSERT INTO fundamentals (
+                symbol, trading_dt, trailingPE, forwardPE, priceToBook,
+                debtToEquity, returnOnEquity, profitMargins, marketCap,
+                beta, dividendYield, earningsQuarterlyGrowth
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            ON DUPLICATE KEY UPDATE
+                trailingPE = VALUES(trailingPE),
+                forwardPE = VALUES(forwardPE),
+                priceToBook = VALUES(priceToBook),
+                debtToEquity = VALUES(debtToEquity),
+                returnOnEquity = VALUES(returnOnEquity),
+                profitMargins = VALUES(profitMargins),
+                marketCap = VALUES(marketCap),
+                beta = VALUES(beta),
+                dividendYield = VALUES(dividendYield),
+                earningsQuarterlyGrowth = VALUES(earningsQuarterlyGrowth)
+        """, (
+            symbol,
+            trading_date,
+            info.get("trailingPE"),
+            info.get("forwardPE"),
+            info.get("priceToBook"),
+            info.get("debtToEquity"),
+            info.get("returnOnEquity"),
+            info.get("profitMargins"),
+            info.get("marketCap"),
+            info.get("beta"),
+            info.get("dividendYield"),
+            info.get("earningsQuarterlyGrowth"),
+        ))
+    except Exception as e:
+        print(f"Error inserting fundamentals for {symbol}: {e}")
+    connection.commit()
+    cursor.close()
+
 def main():
     # List of stock tickers to analyze
     tickers = ['^GSPTSE', 'ALC.TO', 'ALA.TO', 'ACO-X.TO', 'CU.TO', 'FTS', 'WN.TO', 'GWO.TO', 'H.TO', 'KEY.TO', 'MRU.TO', 'NA.TO',
@@ -78,6 +119,8 @@ def main():
         print("Error connecting to database:", e)
         return
 
+    trading_date = td.get_last_trading_date(datetime.now())
+
     for symbol in tickers:
         print(f"Processing {symbol}")
 
@@ -88,6 +131,14 @@ def main():
             end_date = (datetime.strptime(start_date, "%Y-%m-%d") + relativedelta(years=1) - timedelta(days=1)).strftime("%Y-%m-%d")
             upload_stock_data_to_db(connection, to_symbol, start_date, end_date)
     
+        # Store fundamentals for end_date
+        if symbol.startswith('^'):
+            continue  
+        try:
+            store_fundamentals_to_db(connection, to_symbol, trading_date)
+        except Exception as e:
+            print(f"Error fetching fundamentals for {to_symbol}: {e}")
+
     connection.close()
 
 if __name__ == "__main__":
