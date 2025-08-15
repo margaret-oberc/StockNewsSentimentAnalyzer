@@ -66,7 +66,7 @@ def store_fundamentals_to_db(connection, symbol, trading_date):
         info = yf.Ticker(symbol).info
         cursor.execute("""
             INSERT INTO fundamentals (
-                symbol, trading_dt, trailingPE, forwardPE, priceToBook,
+                symbol, close_dt, trailingPE, forwardPE, priceToBook,
                 debtToEquity, returnOnEquity, profitMargins, marketCap,
                 beta, dividendYield, earningsQuarterlyGrowth
             ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
