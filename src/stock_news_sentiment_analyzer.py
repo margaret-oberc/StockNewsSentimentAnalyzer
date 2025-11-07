@@ -13,11 +13,9 @@ from pathlib import Path
 
 # List of stock tickers to analyze
 # List of stock tickers to analyze
-tickers = ['ALC.TO', 'ALA.TO', 'ACO-X.TO', 'CU.TO', 'FTS', 'WN.TO', 'GWO.TO', 'H.TO', 'KEY.TO', 'MRU.TO', 'NA.TO',
-    'PPL.TO', 'RCI-B.TO', 'T.TO', 'X.TO', 'WCN.TO',
-    'AQN', 'FC.TO', 'BCE', 'PAAS', 'ENB', 'CM', 'BMO', 'TD', 'RY', 'MFC', 'BNS', 'CP', 'TRI', 'SU', 'AEM', 'L.TO',
-    'EMA.TO', 'IFC.TO', 'MKP.TO', 'POW.TO', 'QBR-B.TO'] 
-
+tickers = ['ACO-X.TO', 'AEM.TO', 'ALA.TO', 'ALC.TO', 'AQN', 'BCE', 'BMO', 'BNS', 'CM', 'CP', 'CU.TO', 'EMA.TO', 'ENB', 'FC.TO', 'FTS', 'GWO.TO', 'H.TO', 'IFC.TO', 'KEY.TO', 'L.TO', 'MFC',
+                'MKP.TO', 'MRU.TO', 'NA.TO', 'PAAS', 'POW.TO', 'PPL.TO', 'PXT.TO', 'QBR-B.TO', 'RCI-B.TO', 'RSI.TO', 'RY', 'SIA.TO', 'SLF-PC.TO', 'SU', 'T.TO', 'TD', 'TRI', 'WCN.TO', 'WN.TO', 'X.TO']
+ 
 # Pydantic model to structure sentiment response
 class SentimentAnswer(BaseModel):
     score: int = Field(description="Sentiment score: negative=-1, neutral=0, positive=1")
