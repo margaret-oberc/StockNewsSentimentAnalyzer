@@ -8,14 +8,13 @@ import mysql.connector
 import utils.trading_date_lookup as td
 from utils.holiday_manager import load_holiday_dates_from_csv
 from pydantic import BaseModel, Field
-from typing import Iterable, Optional
+from typing import Optional
 from pathlib import Path
 
 # List of stock tickers to analyze
-# List of stock tickers to analyze
-tickers = ['ACO-X.TO', 'AEM.TO', 'ALA.TO', 'ALC.TO', 'AQN', 'BCE', 'BMO', 'BNS', 'CM', 'CP', 'CU.TO', 'EMA.TO', 'ENB', 'FC.TO', 'FTS', 'GWO.TO', 'H.TO', 'IFC.TO', 'KEY.TO', 'L.TO', 'MFC',
-                'MKP.TO', 'MRU.TO', 'NA.TO', 'PAAS', 'POW.TO', 'PPL.TO', 'PXT.TO', 'QBR-B.TO', 'RCI-B.TO', 'RSI.TO', 'RY', 'SIA.TO', 'SLF.TO', 'SU', 'T.TO', 'TD', 'TRI', 'USA.TO', 'WCN.TO', 'WN.TO', 'X.TO']
- 
+tickers = ['ACO-X.TO', 'AEM.TO', 'ALA.TO', 'ALC.TO', 'AQN', 'BCE', 'BMO', 'BN', 'BNS', 'CM', 'CP', 'CU.TO', 'EMA.TO', 'ENB', 'FC.TO', 'FTS', 'GWO.TO', 'H.TO', 'IFC.TO', 'KEY.TO', 'L.TO', 'MFC',
+            'MKP.TO', 'MRU.TO', 'NA.TO', 'PAAS', 'POW.TO', 'PPL.TO', 'PXT.TO', 'QBR-B.TO', 'RCI-B.TO', 'RSI.TO', 'RY', 'SIA.TO', 'SLF.TO', 'SU', 'T.TO', 'TD', 'TRI', 'USA.TO', 'WCN.TO', 'WN.TO', 'X.TO']
+
 # Pydantic model to structure sentiment response
 class SentimentAnswer(BaseModel):
     score: int = Field(description="Sentiment score: negative=-1, neutral=0, positive=1")
@@ -24,6 +23,7 @@ class SentimentAnswer(BaseModel):
 
 # OpenAI API setup
 openai_api_key = os.getenv('OPENAI_API_KEY')
+#OPENAI_MODEL = 'ft:gpt-4.1-mini-2025-04-14:personal::DpfZVRx2'
 OPENAI_MODEL = 'ft:gpt-4o-mini-2024-07-18:personal::A5cBFbkn'
 client = openai.OpenAI()
 
@@ -31,11 +31,15 @@ client = openai.OpenAI()
 sentiment_template = """
 Estimate sentiment score for {symbol} stock from the news article: negative=-1, neutral=0, positive=1.
 Provide answer as an integer number and a short comment indicating the reason.
-If article does not contain mention of the specific stock, please rate neutral.
+If article is not about the specific stock, please rate neutral.
 Title: {title}
 Article: {article}
 Detect if the article is a financial statement - provide answer as type 'story' or 'fs' for financial statement.
 A financial statement is a report issued by that company summarizing financial performance for the last quarter or year.
+Return:
+- score: -1, 0, or 1
+- type: "story" or "fs"
+- comment: maximum 20 words
 """
 # Ensure holidays are loaded at initialization
 root_dir = Path(__file__).parent.parent
@@ -95,6 +99,7 @@ def get_sentiment_analysis(symbol: str, title: str, article: str) -> Optional[Se
             messages=messages,
             response_format=SentimentAnswer,
         )
+
         return completion.choices[0].message.parsed
     except Exception as e:
         print(f"Error fetching sentiment analysis: {e}")
