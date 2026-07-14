@@ -102,8 +102,11 @@ def store_fundamentals_to_db(connection, symbol, trading_date):
 
 def main():
     # List of stock tickers to analyze
-    tickers = ['^GSPTSE', 'ACO-X.TO', 'AEM.TO', 'ALA.TO', 'ALC.TO', 'AQN', 'BCE', 'BMO', 'BN', 'BNS', 'CM', 'CP', 'CU.TO', 'EMA.TO', 'ENB', 'FC.TO', 'FTS', 'GWO.TO', 'H.TO', 'IFC.TO', 'KEY.TO', 'L.TO', 'MFC',
-                'MKP.TO', 'MRU.TO', 'NA.TO', 'PAAS', 'POW.TO', 'PPL.TO', 'PXT.TO', 'QBR-B.TO', 'RCI-B.TO', 'RSI.TO', 'RY', 'SIA.TO', 'SLF.TO', 'SU', 'T.TO', 'TD', 'TRI', 'USA.TO', 'WCN.TO', 'WN.TO', 'X.TO']
+    tickers = ['^GSPTSE', 
+                'ACO-X.TO', 'AEM.TO', 'ALA.TO', 'ALC.TO', 'ALS.TO', 'ARE.TO', 'AQN', 'ATD.TO', 'BCE', 'BDGI.TO', 'BMO', 'BN', 'BNS', 'CCO.TO', 'CEU.TO', 'CM',
+                'CNQ.TO', 'CNR.TO', 'CVE.TO', 'CP', 'CU.TO', 'EIF.TO', 'EMA.TO', 'ENB', 'FC.TO', 'FTS', 'GWO.TO', 'H.TO', 'HPS-A.TO', 'IMO.TO', 'IFC.TO', 'KEY.TO', 'L.TO', 'MFC',
+                'MKP.TO', 'MRU.TO', 'NA.TO', 'PAAS', 'POW.TO', 'PPL.TO', 'PXT.TO', 'QBR-B.TO', 'RCI-B.TO', 'RSI.TO', 'RY',
+                'SIA.TO', 'SLF.TO', 'SU', 'T.TO', 'TIH.TO', 'TD', 'TRI', 'TRP.TO', 'WCN.TO', 'WN.TO', 'WPM.TO', 'X.TO']
     start_dates = ['2017-01-01', '2018-01-01', '2019-01-01', '2020-01-01', '2021-01-01', '2022-01-01', '2023-01-01', '2024-01-01', '2025-01-01', '2026-01-01']
     
     try:
