@@ -103,7 +103,7 @@ def store_fundamentals_to_db(connection, symbol, trading_date):
 def main():
     # List of stock tickers to analyze
     tickers = ['^GSPTSE', 
-                'ACO-X.TO', 'AEM.TO', 'ALA.TO', 'ALC.TO', 'ALS.TO', 'ARE.TO', 'AQN', 'ATD.TO', 'BCE', 'BDGI.TO', 'BMO', 'BN', 'BNS', 'CCO.TO', 'CEU.TO', 'CM',
+                'ACO-X.TO', 'AEM.TO', 'ALA.TO', 'ALC.TO', 'ALS.TO', 'ARE.TO', 'AQN', 'ATD.TO', 'AW.TO', 'BCE', 'BDGI.TO', 'BMO', 'BN', 'BNS', 'CCO.TO', 'CEU.TO', 'CM',
                 'CNQ.TO', 'CNR.TO', 'CPX.TO', 'CVE.TO', 'CVG.TO',  'CP', 'CU.TO', 'EIF.TO', 'EMA.TO', 'ENB', 'FC.TO', 'FFH.TO', 'FTS', 'GWO.TO', 'GEI.TO', 'H.TO', 'HPS-A.TO', 'IMO.TO', 'IFC.TO', 'KEY.TO', 'L.TO',
                 'MEQ.TO', 'MFC', 'MKP.TO', 'MRU.TO', 'NA.TO', 'PAAS', 'POW.TO', 'PPL.TO', 'PXT.TO', 'QBR-B.TO', 'RCI-B.TO', 'RSI.TO', 'RY',
                 'SIA.TO', 'SLF.TO', 'SOBO.TO', 'SU', 'T.TO', 'TIH.TO', 'TD', 'TRI', 'TRP.TO', 'WCN.TO', 'WN.TO', 'WPM.TO', 'X.TO']
