@@ -34,9 +34,21 @@ client = openai.OpenAI()
 sentiment_template = """
 Estimate sentiment score for {symbol} stock from the news article: negative=-1, neutral=0, positive=1.
 Provide answer as an integer number and a short comment indicating the reason.
-If article is not about the specific stock, please rate neutral.
+
+Target company: {symbol}
 Title: {title}
 Article: {article}
+
+Classification rules:
+
+Identify information specifically relevant to the target company, regardless of how prominently it appears in the article.
+The target company may be the main subject, a secondary subject, or mentioned only briefly.
+If the target company is mentioned briefly but the information has material implications for its business, financial performance, competitive position, or valuation, evaluate that information.
+Do not automatically transfer sentiment from the main company to the target company.
+If the target company is mentioned only as a competitor, industry participant, or in a list of peers, assign neutral unless the article provides a clear implication for the target company.
+If the article contains no meaningful information about the target company, assign neutral.
+Consider financial results relative to expectations when explicitly available.
+Base your assessment exclusively on information provided in the article. Do not speculate.
 Detect if the article is a financial statement - provide answer as type 'story' or 'fs' for financial statement.
 A financial statement is a report issued by that company summarizing financial performance for the last quarter or year.
 Return:
